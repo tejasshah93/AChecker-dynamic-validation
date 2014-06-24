@@ -1,4 +1,3 @@
-var forms = [];
 var casper = require('casper').create({
     clientScripts: ['jquery.min.js'],
     verbose: true,
@@ -9,52 +8,76 @@ casper.on('remote.message', function(message) {
     this.echo('Console: ' + message);
 });
 
-function getLinks() {
-    var links = document.querySelectorAll('h3.r a');
-    return Array.prototype.map.call(links, function(e) {
-        return e.getAttribute('href');
-    });
-}
-
-function getForms() {
+function getForms(){
     console.log("getForms: " + document.forms);
-    var forms = Array.prototype.slice.call(document.forms, 0);   
+    var forms = Array.prototype.slice.call(document.forms, 0);
     return forms;
 }
 
-casper.start('https://github.com/join', function() {
-    // search for 'casperjs' from google form
-    forms = this.evaluate(getForms);    
-    console.log("We got " + forms.length + " forms " + forms);
+function getButtonTriggerElements(){    
+    buttonTriggerElementsObject = document.getElementsByTagName('button');
+    console.log("Length of buttonTriggerElements " + buttonTriggerElementsObject.length);    
+    var buttonTriggerElements = [];
+    for(i=0; i<buttonTriggerElementsObject.length; i++){   
+        if(buttonTriggerElementsObject[i].type == "submit"){
+            //console.log("BUTTON Type == Submit. Add to Array");
+            buttonTriggerElements.push(buttonTriggerElementsObject[i]);
+        }
+    }
+    return buttonTriggerElements;
+}
+
+function getInputTriggerElements(){        
+    inputTriggerElementsObject = document.getElementsByTagName('input');
+    console.log("Length of inputTriggerElements " + inputTriggerElementsObject.length);    
+    var inputTriggerElements = [];
+    for(i=0; i<inputTriggerElementsObject.length; i++){   
+        if(inputTriggerElementsObject[i].type == "submit"){
+            //console.log("INPUT Type == Submit. Add to Array");
+            inputTriggerElements.push(inputTriggerElementsObject[i]);
+        }
+    }
+    return inputTriggerElements;
+}
+
+casper.start(casper.cli.get("url"), function() {    
+    //forms = this.evaluate(getForms);
+    //console.log("We got " + forms.length + " forms " + forms);
+    this.echo("Casper started");
 });
 
-// casper.then(function() {
-//   casper.page.injectJs('jquery.min.js');
-// });
-
-// casper.wait(500, function(){
-//     this.evaluate(function(){
-//         $('button').click();        
-//     });
-// });
-
 casper.then(function(){
-    this.evaluate(function(){
-        $('button').click();        
-    });
-});
+    buttonTriggerElements = this.evaluate(getButtonTriggerElements);
+    inputTriggerElements  = this.evaluate(getInputTriggerElements);
 
-casper.then(function(){
-    this.evaluate(function(forms){ 
-        console.log(forms.length);        
-        forms.forEach(function(form) {
-            if(form){
-                console.log("Processing " + form);
-                // $('button').click();
+    var triggerElements   = []
+    if(buttonTriggerElements.length)
+        triggerElements = buttonTriggerElements.concat(inputTriggerElements);
+    else if(inputTriggerElements.length)
+        triggerElements = inputTriggerElements.concat(buttonTriggerElements);    
+
+    //console.log(Object.prototype.toString.call(triggerElements) === "[object Array]");
+    this.each(triggerElements, function(self, triggerElement){        
+        this.then(function(){
+            this.evaluate(function(triggerElement){     
+                var jQuerySelector = "";
+                if(triggerElement.id){
+                    jQuerySelector = "#" + triggerElement.id;
+                }
+                else if(triggerElement.name){
+                    jQuerySelector = triggerElement.tagName.toLowerCase() + "[name='" + triggerElement.name + "']";
+                }
+                console.log("jQuerySelector " + jQuerySelector);
+                $(jQuerySelector).click();
+            }, triggerElement);
+        });
+
+        this.wait(1000, function(){
+            this.evaluate(function(){
                 console.log(document.getElementsByTagName('html')[0].innerHTML);
-            }
-        });    
-    }, forms);
+            });
+        });
+    });
 });
 
 casper.run(function() {
