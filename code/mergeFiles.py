@@ -22,5 +22,8 @@ for i in range(totalFiles-1):
     p1.stdout.close()
     output = p2.communicate()[0]
     outputList = output.split("\n")
-    diff = filter(lambda x: getValidDifference(x), outputList)[0][1:]
-    dynamicHTML.write(diff + "\n")
+    rawDiff = filter(lambda x: getValidDifference(x), outputList)
+    print rawDiff
+    for j in range(len(rawDiff)):
+        diff = rawDiff[j][1:]    
+        dynamicHTML.write(diff + "\n")
