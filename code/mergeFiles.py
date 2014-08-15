@@ -1,4 +1,8 @@
-import subprocess, os
+import bs4
+from bs4 import BeautifulSoup
+from bs4 import SoupStrainer
+import subprocess, sys, os
+import urllib2
 
 def getValidDifference(x):
     if x != "":
@@ -7,9 +11,26 @@ def getValidDifference(x):
     else:
         return
 
+def getDoctype(soup):
+    items = [item for item in soup.contents if isinstance(item, bs4.Doctype)]
+    return items[0] if items else None        
+
 rootPath = "HTMLSourceFiles/"
-dynamicHTML = open(os.path.join("dynamicDOMElements.html"), "w")
-dynamicHTML.write('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="eng" lang="eng">')
+dynamicHTML = open("dynamicDOMElements.html", "w")
+
+response = urllib2.urlopen(sys.argv[1])
+html = response.read()
+soup = BeautifulSoup(html)
+doctype = getDoctype(soup)
+if doctype:
+    dynamicHTML.write('<!DOCTYPE ' + doctype + '>' + '\n')
+HTMLHeadersDict = soup.find_all('html')[0].attrs
+HTMLHeaders = '<html'
+for attr in soup.find_all('html')[0].attrs:
+    HTMLHeaders += ' ' + attr + '=' + '"' + HTMLHeadersDict[attr] + '"'
+HTMLHeaders += '>'
+dynamicHTML.write(HTMLHeaders)
+
 totalFiles = 0
 for path, dirs, files in os.walk(rootPath):
     totalFiles = len(files)
