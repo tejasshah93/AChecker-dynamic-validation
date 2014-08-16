@@ -5,6 +5,7 @@ var casper = require('casper').create({
 });
 var fs = require('fs');
 var triggerElementsCounter = 0;
+var doctypeDeclaration;
 
 // Capturing the output of casper i.e. phantomJS browser onto the console
 casper.on('remote.message', function(message) {
@@ -15,7 +16,20 @@ casper.on('remote.message', function(message) {
 function runOnloadFunction(){
     if($('[onload]').length)
         $('[onload]').load();
-    return document.getElementsByTagName('html')[0].outerHTML;;
+    
+    var node = document.doctype;
+    if(node){        
+        doctypeDeclaration = "<!DOCTYPE "
+                                + node.name
+                                + (node.publicId ? ' PUBLIC "' + node.publicId + '"' : '')
+                                + (!node.publicId && node.systemId ? ' SYSTEM' : '') 
+                                + (node.systemId ? ' "' + node.systemId + '"' : '')
+                                + '>\n';
+    }
+    else if(node == null){
+        doctypeDeclaration = "";
+    }
+    return doctypeDeclaration + document.getElementsByTagName('html')[0].outerHTML;;
 }
 
 // Getting all the button elements with type == "submit"
@@ -142,7 +156,7 @@ casper.then(function(){
         this.wait(1000, function(){
             HTMLSource = this.evaluate(function(){
                 // Get the innerHTML contents of the dynamically obtained HTML                                
-                return document.getElementsByTagName('html')[0].outerHTML;
+                return doctypeDeclaration + document.getElementsByTagName('html')[0].outerHTML;
             });            
             triggerElementsCounter++;
             var save = fs.pathJoin(fs.workingDirectory, 'HTMLSourceFiles', 'data' + triggerElementsCounter + '.html');
