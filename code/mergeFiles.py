@@ -34,4 +34,3 @@ for i in range(totalFiles-1):
     for j in range(len(rawDiff)):
         diff = rawDiff[j][1:]    
         dynamicHTML.write(diff + "\n")
-dynamicHTML.write("</body>\n")

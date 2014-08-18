@@ -15,7 +15,10 @@ else
     chmod -R 775 dynamicDOMElements.html HTMLSourceFiles
 
     # 'Selective merging' of original source code of the webpage with dynamicDOMElements
-    sed -i 's/<\/body>/\n<\/body>\n/' HTMLSourceFiles/data0.html
+    sed -i 's/<\/body>//g' dynamicDOMElements.html
+    sed -i 's/<\/html>//g' dynamicDOMElements.html
+    echo "</body>" >> dynamicDOMElements.html
+    sed -i 's/<\/body>/\n<\/body>\n/g' HTMLSourceFiles/data0.html
     sed -i '/<\/body>/{
                 s/<\/body>//g
                 r dynamicDOMElements.html
