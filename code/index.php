@@ -25,6 +25,9 @@ $mtime = microtime();
 $mtime = explode(" ", $mtime); 
 $mtime = $mtime[1] + $mtime[0]; 
 $starttime = $mtime;
+
+// A boolean flag that decides the whether $_POST['validate_paste'] is enabled,
+// via input form dynamic validation of URL or via general HTML Paste Markup tab selection
 $dynamicTestingFlag = false;
 
 // input_form - array in session that contains latest user request (needed for file export)
